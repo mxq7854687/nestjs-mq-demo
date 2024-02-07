@@ -1,28 +1,28 @@
 import {
-  BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
 import { RegisterDto } from './dto/new-user.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { UserRepository } from '@app/shared/repositories/user.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepo: Repository<UserEntity>,
+    @Inject('UserRepositoryInterface')
+    private readonly userRepo: UserRepository,
     private readonly jwtService: JwtService,
   ) {}
 
   async getUsers() {
-    return this.userRepo.find();
+    return this.userRepo.findAll();
   }
 
   async postUser() {
@@ -30,7 +30,7 @@ export class AuthService {
   }
 
   async findByEmail(email: string): Promise<UserEntity> {
-    return this.userRepo.findOne({ where: { email } });
+    return this.userRepo.findByCondition({ where: { email } });
   }
 
   async hashPassword(password: string): Promise<string> {
@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   async login(dto: Readonly<LoginDto>) {
-    const user = await this.userRepo.findOne({
+    const user = await this.userRepo.findByCondition({
       where: {
         email: dto.email,
       },

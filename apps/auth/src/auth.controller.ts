@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Inject, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   Ctx,
@@ -14,7 +14,9 @@ import { JwtGuard } from './jwt.guard';
 @Controller()
 export class AuthController {
   constructor(
+    @Inject('AuthServiceInterface')
     private readonly authService: AuthService,
+    @Inject('SharedServiceInterface')
     private readonly sharedService: SharedService,
   ) {}
 
@@ -34,6 +36,7 @@ export class AuthController {
 
   @MessagePattern({ cmd: 'register' })
   async register(@Ctx() context: RmqContext, @Payload() newUser: RegisterDto) {
+    console.log('register');
     this.sharedService.acknowledgeMessage(context);
 
     return this.authService.register(newUser);
